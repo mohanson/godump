@@ -1,7 +1,7 @@
 package pretty
 
 import (
-	"fmt"
+	"log"
 	"strings"
 )
 
@@ -18,16 +18,16 @@ func PrintTable(data [][]string) {
 		l := size[j]
 		line[j] = strings.Repeat(" ", l-len(c)) + c
 	}
-	fmt.Println(strings.Join(line, " "))
+	log.Println("pretty:", strings.Join(line, " "))
 	for i, c := range size {
 		line[i] = strings.Repeat("-", c)
 	}
-	fmt.Println(strings.Join(line, "-"))
+	log.Println("pretty:", strings.Join(line, "-"))
 	for _, r := range data[1:] {
 		for j, c := range r {
 			l := size[j]
 			line[j] = strings.Repeat(" ", l-len(c)) + c
 		}
-		fmt.Println(strings.Join(line, " "))
+		log.Println("pretty:", strings.Join(line, " "))
 	}
 }

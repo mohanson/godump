@@ -6,7 +6,7 @@ import (
 
 func main() {
 	pretty.PrintTable([][]string{
-		{"Coin", "Usable", "Freeze"},
+		{"coin", "usable", "freeze"},
 		{"bnb", "3.4247", "15.1042"},
 		{"btc", "0.0356", "0.2018"},
 		{"ckb", "526333.5353", "3160364.7891"},
