@@ -14,7 +14,9 @@ import (
 func PrintProgress(percent float64) {
 	doa.Doa(0 <= percent && percent <= 1)
 	out, _ := os.Stdout.Stat()
+	// Identify if we are displaying to a terminal or through a pipe or redirect.
 	if out.Mode()&os.ModeCharDevice == os.ModeCharDevice {
+		// Save or restore cursor position.
 		log.Writer().Write([]byte{0x1b, 0x37 + uint8(math.Ceil(percent))})
 	}
 	cap := int(percent * 44)
