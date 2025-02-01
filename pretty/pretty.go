@@ -1,9 +1,34 @@
 package pretty
 
 import (
+	"fmt"
 	"log"
+	"math"
+	"os"
 	"strings"
+
+	"github.com/mohanson/godump/doa"
 )
+
+// PrintProgress draw a progress bar in the terminal. The percent takes values ​​from 0 to 1.
+func PrintProgress(percent float64) {
+	doa.Doa(0 <= percent && percent <= 1)
+	out, _ := os.Stdout.Stat()
+	if out.Mode()&os.ModeCharDevice == os.ModeCharDevice {
+		log.Writer().Write([]byte{0x1b, 0x37 + uint8(math.Ceil(percent))})
+	}
+	cap := int(percent * 44)
+	buf := []byte("[                                             ] 000%")
+	for i := 1; i < cap+1; i++ {
+		buf[i] = '='
+	}
+	buf[1+cap] = '>'
+	num := []byte(fmt.Sprintf("%3d", int(percent*100)))
+	buf[48] = num[0]
+	buf[49] = num[1]
+	buf[50] = num[2]
+	log.Println("pretty:", string(buf))
+}
 
 // PrintTable easily draw tables in terminal/console applications from a list of lists of strings.
 func PrintTable(data [][]string) {
