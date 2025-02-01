@@ -24,6 +24,7 @@ func once() {
 
 // Execution on different CPUs.
 //
+// Intel(R) Core(TM) m3-7Y30 --- 590976
 // Intel(R) Xeon(R) Gold 6133 -- 706816
 // Intel(R) Core(TM) i7-9700 -- 1020672
 // AMD EPYC 7K62 -------------- 1861888
