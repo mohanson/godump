@@ -3,7 +3,6 @@ package pretty
 import (
 	"fmt"
 	"log"
-	"math"
 	"os"
 	"strings"
 
@@ -17,7 +16,12 @@ func PrintProgress(percent float64) {
 	// Identify if we are displaying to a terminal or through a pipe or redirect.
 	if out.Mode()&os.ModeCharDevice == os.ModeCharDevice {
 		// Save or restore cursor position.
-		log.Writer().Write([]byte{0x1b, 0x37 + uint8(math.Ceil(percent))})
+		if percent == 0 {
+			log.Writer().Write([]byte{0x1b, 0x37})
+		}
+		if percent != 0 {
+			log.Writer().Write([]byte{0x1b, 0x38})
+		}
 	}
 	cap := int(percent * 44)
 	buf := []byte("[                                             ] 000%")
@@ -25,7 +29,7 @@ func PrintProgress(percent float64) {
 		buf[i] = '='
 	}
 	buf[1+cap] = '>'
-	num := []byte(fmt.Sprintf("%3d", int(percent*100)))
+	num := fmt.Sprintf("%3d", int(percent*100))
 	buf[48] = num[0]
 	buf[49] = num[1]
 	buf[50] = num[2]
