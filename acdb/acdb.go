@@ -212,7 +212,7 @@ func (e *Client) Set(k string, v []byte) error {
 }
 
 // GetDecode get the decoded value of a key.
-func (e *Client) GetDecode(k string, v interface{}) error {
+func (e *Client) GetDecode(k string, v any) error {
 	b, err := e.Get(k)
 	if err != nil {
 		return err
@@ -221,7 +221,7 @@ func (e *Client) GetDecode(k string, v interface{}) error {
 }
 
 // SetEncode set the encoded value of a key.
-func (e *Client) SetEncode(k string, v interface{}) error {
+func (e *Client) SetEncode(k string, v any) error {
 	b, err := json.Marshal(v)
 	if err != nil {
 		return err
