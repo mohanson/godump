@@ -36,6 +36,12 @@ func NewMemDriver() *MemDriver {
 	}
 }
 
+// Del the value of a key.
+func (d *MemDriver) Del(k string) error {
+	delete(d.data, k)
+	return nil
+}
+
 // Get the value of a key.
 func (d *MemDriver) Get(k string) ([]byte, error) {
 	v, b := d.data[k]
@@ -48,12 +54,6 @@ func (d *MemDriver) Get(k string) ([]byte, error) {
 // Set the value of a key.
 func (d *MemDriver) Set(k string, v []byte) error {
 	d.data[k] = v
-	return nil
-}
-
-// Del the value of a key.
-func (d *MemDriver) Del(k string) error {
-	delete(d.data, k)
 	return nil
 }
 
@@ -71,6 +71,11 @@ func NewDocDriver(root string) *DocDriver {
 	}
 }
 
+// Del the value of a key.
+func (d *DocDriver) Del(k string) error {
+	return os.Remove(path.Join(d.root, k))
+}
+
 // Get the value of a key.
 func (d *DocDriver) Get(k string) ([]byte, error) {
 	return os.ReadFile(path.Join(d.root, k))
@@ -79,11 +84,6 @@ func (d *DocDriver) Get(k string) ([]byte, error) {
 // Set the value of a key.
 func (d *DocDriver) Set(k string, v []byte) error {
 	return os.WriteFile(path.Join(d.root, k), v, 0644)
-}
-
-// Del the value of a key.
-func (d *DocDriver) Del(k string) error {
-	return os.Remove(path.Join(d.root, k))
 }
 
 // LruDriver implemention. In computing, cache algorithms (also frequently called cache replacement algorithms or cache
@@ -106,6 +106,12 @@ func NewLruDriver(size int) *LruDriver {
 	}
 }
 
+// Del the value of a key.
+func (d *LruDriver) Del(k string) error {
+	d.data.Del(k)
+	return nil
+}
+
 // Get the value of a key.
 func (d *LruDriver) Get(k string) ([]byte, error) {
 	v, b := d.data.GetExists(k)
@@ -118,12 +124,6 @@ func (d *LruDriver) Get(k string) ([]byte, error) {
 // Set the value of a key.
 func (d *LruDriver) Set(k string, v []byte) error {
 	d.data.Set(k, v)
-	return nil
-}
-
-// Del the value of a key.
-func (d *LruDriver) Del(k string) error {
-	d.data.Del(k)
 	return nil
 }
 
@@ -140,6 +140,17 @@ func NewMapDriver(root string) *MapDriver {
 		doc: NewDocDriver(root),
 		lru: NewLruDriver(1024),
 	}
+}
+
+// Del the value of a key.
+func (d *MapDriver) Del(k string) error {
+	if err := d.lru.Del(k); err != nil {
+		return err
+	}
+	if err := d.doc.Del(k); err != nil {
+		return err
+	}
+	return nil
 }
 
 // Get the value of a key.
@@ -171,17 +182,6 @@ func (d *MapDriver) Set(k string, v []byte) error {
 	return nil
 }
 
-// Del the value of a key.
-func (d *MapDriver) Del(k string) error {
-	if err := d.lru.Del(k); err != nil {
-		return err
-	}
-	if err := d.doc.Del(k); err != nil {
-		return err
-	}
-	return nil
-}
-
 // Client is a actuator of the given drive. Do not worry, Is's concurrency-safety.
 type Client struct {
 	driver Driver
@@ -194,21 +194,11 @@ func NewClient(driver Driver) *Client {
 	return &Client{driver: driver, log: 1, m: &sync.Mutex{}}
 }
 
-// Get the value of a key.
-func (e *Client) Get(k string) ([]byte, error) {
+// Del the value of a key.
+func (e *Client) Del(k string) error {
 	e.m.Lock()
 	defer e.m.Unlock()
-	return e.driver.Get(k)
-}
-
-// Set the value of a key.
-func (e *Client) Set(k string, v []byte) error {
-	e.m.Lock()
-	defer e.m.Unlock()
-	if e.log != 0 {
-		log.Println("acdb: set", k, string(v))
-	}
-	return e.driver.Set(k, v)
+	return e.driver.Del(k)
 }
 
 // GetDecode get the decoded value of a key.
@@ -218,29 +208,6 @@ func (e *Client) GetDecode(k string, v any) error {
 		return err
 	}
 	return json.Unmarshal(b, v)
-}
-
-// SetEncode set the encoded value of a key.
-func (e *Client) SetEncode(k string, v any) error {
-	b, err := json.Marshal(v)
-	if err != nil {
-		return err
-	}
-	return e.Set(k, b)
-}
-
-// GetUint32 get the uint32 value of a key.
-func (e *Client) GetUint32(k string) (uint32, error) {
-	var r uint32
-	err := e.GetDecode(k, &r)
-	return r, err
-}
-
-// GetUint64 get the uint64 value of a key.
-func (e *Client) GetUint64(k string) (uint64, error) {
-	var r uint64
-	err := e.GetDecode(k, &r)
-	return r, err
 }
 
 // GetFloat32 get the float32 value of a key.
@@ -264,11 +231,25 @@ func (e *Client) GetString(k string) (string, error) {
 	return r, err
 }
 
-// Del the value of a key.
-func (e *Client) Del(k string) error {
+// GetUint32 get the uint32 value of a key.
+func (e *Client) GetUint32(k string) (uint32, error) {
+	var r uint32
+	err := e.GetDecode(k, &r)
+	return r, err
+}
+
+// GetUint64 get the uint64 value of a key.
+func (e *Client) GetUint64(k string) (uint64, error) {
+	var r uint64
+	err := e.GetDecode(k, &r)
+	return r, err
+}
+
+// Get the value of a key.
+func (e *Client) Get(k string) ([]byte, error) {
 	e.m.Lock()
 	defer e.m.Unlock()
-	return e.driver.Del(k)
+	return e.driver.Get(k)
 }
 
 // Has determine if a key exists.
@@ -277,15 +258,34 @@ func (e *Client) Has(k string) bool {
 	return err == nil
 }
 
+// Log set the log level.
+func (e *Client) Log(l int) {
+	e.log = l
+}
+
 // Nil determine if a key emptys.
 func (e *Client) Nil(k string) bool {
 	_, err := e.Get(k)
 	return err != nil
 }
 
-// Log set the log level.
-func (e *Client) Log(l int) {
-	e.log = l
+// SetEncode set the encoded value of a key.
+func (e *Client) SetEncode(k string, v any) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	return e.Set(k, b)
+}
+
+// Set the value of a key.
+func (e *Client) Set(k string, v []byte) error {
+	e.m.Lock()
+	defer e.m.Unlock()
+	if e.log != 0 {
+		log.Println("acdb: set", k, string(v))
+	}
+	return e.driver.Set(k, v)
 }
 
 // Mem returns a concurrency-safety Client with MemDriver.
