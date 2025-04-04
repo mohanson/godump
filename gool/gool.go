@@ -7,14 +7,11 @@ import (
 	"sync"
 )
 
-var (
-	defaultChan = func() chan struct{} {
-		n := runtime.NumCPU()
-		c := make(chan struct{}, n)
-		return c
-	}()
-	defaultGool = NewGool()
-)
+var c = func() chan struct{} {
+	n := runtime.NumCPU()
+	c := make(chan struct{}, n)
+	return c
+}()
 
 // Gool is an executor that uses a pool of goroutines to execute calls asynchronously.
 type Gool struct {
@@ -24,12 +21,12 @@ type Gool struct {
 
 // Call the callable f.
 func (g *Gool) Call(f func()) {
-	defaultChan <- struct{}{}
+	c <- struct{}{}
 	g.W.Add(1)
 	go func() {
 		f()
 		g.W.Done()
-		<-defaultChan
+		<-c
 	}()
 }
 
@@ -45,25 +42,10 @@ func (g *Gool) Wait() {
 	g.W.Wait()
 }
 
-// NewGool creates a new Gool.
-func NewGool() *Gool {
+// Init creates a new Gool.
+func Init() *Gool {
 	return &Gool{
 		W: &sync.WaitGroup{},
 		M: &sync.Mutex{},
 	}
-}
-
-// Call the callable f.
-func Call(f func()) {
-	defaultGool.Call(f)
-}
-
-// Lock locks m and call f. This function is usually used to aggregate calculation results.
-func Lock(f func()) {
-	defaultGool.Lock(f)
-}
-
-// Wait blocks until all tasks is done.
-func Wait() {
-	defaultGool.Wait()
 }

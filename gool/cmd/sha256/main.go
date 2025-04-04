@@ -48,15 +48,16 @@ func mainGool() int {
 		done += 1
 	})
 	cnts := 0
+	grun := gool.Init()
 	for done != 1 {
-		gool.Call(func() {
+		grun.Call(func() {
 			once()
-			gool.Lock(func() {
+			grun.Lock(func() {
 				cnts += 1
 			})
 		})
 	}
-	gool.Wait()
+	grun.Wait()
 	rate := cnts * 128
 	return rate
 }
