@@ -1,3 +1,3 @@
 # Gool
 
-Package gool provides a high-level interface for asynchronously executing callables. Gool limits the number of concurrently executed tasks to be less than or equal to the number of CPU cores.
+Package gool offers a high-level API for running tasks asynchronously, restricting concurrent executions to the number of cpu cores or a specified limit.

@@ -48,7 +48,7 @@ func mainGool() int {
 		done += 1
 	})
 	cnts := 0
-	grun := gool.Init()
+	grun := gool.Cpu()
 	for done != 1 {
 		grun.Call(func() {
 			once()

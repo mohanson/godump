@@ -1,5 +1,5 @@
-// Package gool provides a high-level interface for asynchronously executing callables. Gool limits the number of
-// concurrently executed tasks to be less than or equal to the number of CPU cores.
+// Package gool offers a high-level API for running tasks asynchronously, restricting concurrent executions to the
+// number of cpu cores or a specified limit.
 package gool
 
 import (
@@ -7,45 +7,52 @@ import (
 	"sync"
 )
 
-var c = func() chan struct{} {
-	n := runtime.NumCPU()
-	c := make(chan struct{}, n)
-	return c
-}()
+var cCpu = make(chan struct{}, runtime.NumCPU())
 
-// Gool is an executor that uses a pool of goroutines to execute calls asynchronously.
+// Gool manages a pool of goroutines for asynchronous task execution.
 type Gool struct {
-	W *sync.WaitGroup
+	C chan struct{}
 	M *sync.Mutex
+	W *sync.WaitGroup
 }
 
-// Call the callable f.
+// Call submits a function f for asynchronous execution in a new goroutine, respecting the concurrency limit.
 func (g *Gool) Call(f func()) {
-	c <- struct{}{}
+	g.C <- struct{}{}
 	g.W.Add(1)
 	go func() {
 		f()
 		g.W.Done()
-		<-c
+		<-g.C
 	}()
 }
 
-// Lock locks m and call f. This function is usually used to aggregate calculation results.
+// Lock executes function f with exclusive access, synchronizing via the mutex, typically for aggregating results.
 func (g *Gool) Lock(f func()) {
 	g.M.Lock()
 	defer g.M.Unlock()
 	f()
 }
 
-// Wait blocks until all tasks is done.
+// Wait blocks until all submitted tasks have completed.
 func (g *Gool) Wait() {
 	g.W.Wait()
 }
 
-// Init creates a new Gool.
-func Init() *Gool {
+// Cpu initializes a Gool instance with a global concurrency limit specified by cpu cores.
+func Cpu() *Gool {
 	return &Gool{
-		W: &sync.WaitGroup{},
+		C: cCpu,
 		M: &sync.Mutex{},
+		W: &sync.WaitGroup{},
+	}
+}
+
+// New initializes a Gool instance with a custom concurrency limit specified by n.
+func New(n int) *Gool {
+	return &Gool{
+		C: make(chan struct{}, n),
+		M: &sync.Mutex{},
+		W: &sync.WaitGroup{},
 	}
 }
