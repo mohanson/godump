@@ -2,6 +2,7 @@ package main
 
 import (
 	"crypto/sha256"
+	"encoding/binary"
 	"log"
 	"math/rand/v2"
 	"runtime"
@@ -12,10 +13,11 @@ import (
 
 func once() {
 	buffer := make([]byte, 256)
-	chacha := rand.NewChaCha8([32]byte{})
 	hasher := sha256.New()
 	for range 1024 {
-		chacha.Read(buffer)
+		for i := range 32 {
+			binary.LittleEndian.PutUint64(buffer[i*8:i*8+8], rand.Uint64())
+		}
 		hasher.Write(buffer)
 		hasher.Sum(nil)
 		hasher.Reset()
@@ -30,7 +32,7 @@ func once() {
 // AMD EPYC 7K62 -------------- 1861888
 func mainLoop() int {
 	done := 0
-	time.AfterFunc(8*time.Second, func() {
+	time.AfterFunc(time.Second, func() {
 		done += 1
 	})
 	cnts := 0
@@ -38,13 +40,13 @@ func mainLoop() int {
 		once()
 		cnts += 1
 	}
-	rate := cnts * 128
+	rate := cnts * 1024
 	return rate
 }
 
 func mainGool() int {
 	done := 0
-	time.AfterFunc(8*time.Second, func() {
+	time.AfterFunc(time.Second, func() {
 		done += 1
 	})
 	cnts := 0
@@ -58,7 +60,7 @@ func mainGool() int {
 		})
 	}
 	grun.Wait()
-	rate := cnts * 128
+	rate := cnts * 1024
 	return rate
 }
 
