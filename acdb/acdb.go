@@ -224,6 +224,27 @@ func (e *Client) GetFloat64(k string) (float64, error) {
 	return r, err
 }
 
+// GetInt32 get the int32 value of a key.
+func (e *Client) GetInt32(k string) (int32, error) {
+	var r int32
+	err := e.GetDecode(k, &r)
+	return r, err
+}
+
+// GetInt64 get the int64 value of a key.
+func (e *Client) GetInt64(k string) (int64, error) {
+	var r int64
+	err := e.GetDecode(k, &r)
+	return r, err
+}
+
+// GetInt get the int value of a key.
+func (e *Client) GetInt(k string) (int, error) {
+	var r int
+	err := e.GetDecode(k, &r)
+	return r, err
+}
+
 // GetString get the string value of a key.
 func (e *Client) GetString(k string) (string, error) {
 	var r string
@@ -241,6 +262,13 @@ func (e *Client) GetUint32(k string) (uint32, error) {
 // GetUint64 get the uint64 value of a key.
 func (e *Client) GetUint64(k string) (uint64, error) {
 	var r uint64
+	err := e.GetDecode(k, &r)
+	return r, err
+}
+
+// GetUint get the uint value of a key.
+func (e *Client) GetUint(k string) (uint, error) {
+	var r uint
 	err := e.GetDecode(k, &r)
 	return r, err
 }
