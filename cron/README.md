@@ -1,3 +1,3 @@
 # Cron
 
-Package cron provides functionality for generate signals at intervals timed in January 1, 1970 UTC.
+// Package cron provides a simple way to schedule tasks at fixed intervals.

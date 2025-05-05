@@ -1,30 +1,22 @@
-// Package cron provides functionality for generate signals at intervals timed in January 1, 1970 UTC.
+// Package cron provides a simple way to schedule tasks at fixed intervals.
 package cron
 
 import (
 	"time"
+
+	"github.com/mohanson/godump/doa"
 )
 
-// Cron loop generate a signal every d duration timed in January 1, 1970 UTC.
-func Cron(d time.Duration) <-chan struct{} {
+// Cron schedules tasks at regular intervals.
+func Cron(e time.Duration, d time.Duration) <-chan struct{} {
+	// Ensure that the delay is less than or equal to the elapsed time between events.
+	doa.Doa(d < e)
 	r := make(chan struct{})
 	go func() {
 		for {
-			n := time.Now().UnixNano()
-			m := time.Duration(int64(d)-n%int64(d)) * time.Nanosecond
-			time.Sleep(m)
-			r <- struct{}{}
-		}
-	}()
-	return r
-}
-
-// Wait function offsets the received time signal by d duration.
-func Wait(c <-chan struct{}, d time.Duration) <-chan struct{} {
-	r := make(chan struct{})
-	go func() {
-		for range c {
-			time.Sleep(d)
+			n := time.Now()
+			// Wait for the next scheduled event by adding the elapsed time and then waiting for the delay.
+			time.Sleep(n.Add(e).Truncate(e).Sub(n) + d)
 			r <- struct{}{}
 		}
 	}()
