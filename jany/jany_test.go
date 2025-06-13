@@ -57,12 +57,12 @@ var cl string = strings.TrimSpace(`
 `)
 
 func TestJany(t *testing.T) {
-	o := doa.Try(Reader(bytes.NewReader([]byte(co))))
+	o := doa.Try(Data([]byte(co)))
 	doa.Doa(o.Get("Image").Get("Width").Uint32() == 800)
 	doa.Doa(o.Get("Image").Get("Title").String() == "View from 15th Floor")
 	doa.Doa(o.Get("Image").Get("IDs").Idx(0).Uint32() == 116)
 	doa.Doa(o.Get("Image").Get("IDs").Idx(3).Uint32() == 38793)
-	l := doa.Try(Reader(bytes.NewReader([]byte(cl))))
+	l := doa.Try(Read(bytes.NewReader([]byte(cl))))
 	doa.Doa(l.Idx(0).Get("Longitude").Float64() == -122.3959)
 	doa.Doa(l.Idx(1).Get("City").String() == "SUNNYVALE")
 }

@@ -2,6 +2,7 @@
 package jany
 
 import (
+	"bytes"
 	"encoding/json"
 	"io"
 	"strconv"
@@ -9,18 +10,14 @@ import (
 	"github.com/mohanson/godump/doa"
 )
 
+// Data returns a new Jany instance from the given byte slice.
+func Data(b []byte) (*Jany, error) {
+	return Read(bytes.NewReader(b))
+}
+
 // Jany is a struct that holds any type of data, allowing for flexible parsing and manipulation.
 type Jany struct {
 	j any
-}
-
-// Reader returns a new Jany instance from the given reader.
-func Reader(r io.Reader) (*Jany, error) {
-	j := new(Jany)
-	dec := json.NewDecoder(r)
-	dec.UseNumber()
-	err := dec.Decode(&j.j)
-	return j, err
 }
 
 // Bool returns the bool representation of the current Jany instance.
@@ -123,4 +120,13 @@ func (j *Jany) Uint64() uint64 {
 // Uint returns the uint representation of the current Jany instance.
 func (j *Jany) Uint() uint {
 	return uint(doa.Try(strconv.ParseUint(j.j.(json.Number).String(), 0, 64)))
+}
+
+// Read returns a new Jany instance from the given reader.
+func Read(r io.Reader) (*Jany, error) {
+	j := new(Jany)
+	dec := json.NewDecoder(r)
+	dec.UseNumber()
+	err := dec.Decode(&j.j)
+	return j, err
 }
