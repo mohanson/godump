@@ -9,9 +9,6 @@ import (
 func TestMain(t *testing.T) {
 	rate := NewLimits(128, time.Millisecond)
 	for range 1024 {
-		if rand.Uint32()%8 == 0 {
-			time.Sleep(time.Millisecond)
-		}
 		maxn := rate.capacity * 4
 		rate.Wait(rand.Uint64() % maxn)
 	}
