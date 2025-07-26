@@ -20,7 +20,6 @@ type Limits struct {
 
 // Wait ensures there are enough resources (n) available, blocking if necessary.
 func (l *Limits) Wait(n uint64) {
-	doa.Doa(n < math.MaxUint64/2)
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	cycles := uint64(time.Since(l.last) / l.step)
@@ -44,9 +43,8 @@ func (l *Limits) Wait(n uint64) {
 // NewLimits creates a new rate limiter with rate r over period p.
 func NewLimits(r uint64, p time.Duration) *Limits {
 	doa.Doa(r > 0)
-	doa.Doa(r < math.MaxUint64/2)
 	doa.Doa(p > 0)
-	g := func(a, b uint64) uint64 {
+	gcd := func(a, b uint64) uint64 {
 		t := uint64(0)
 		for b != 0 {
 			t = b
@@ -55,14 +53,12 @@ func NewLimits(r uint64, p time.Duration) *Limits {
 		}
 		return a
 	}(r, uint64(p))
-	a := r / g
-	s := p / time.Duration(g)
 	return &Limits{
-		addition: a,
+		addition: r / gcd,
 		capacity: r,
 		last:     time.Now(),
 		mu:       sync.Mutex{},
 		size:     r,
-		step:     s,
+		step:     p / time.Duration(gcd),
 	}
 }
