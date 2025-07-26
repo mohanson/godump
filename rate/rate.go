@@ -18,6 +18,21 @@ type Limits struct {
 	step     time.Duration
 }
 
+// Peek glances there are enough resources (n) available.
+func (l *Limits) Peek(n uint64) bool {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	cycles := uint64(time.Since(l.last) / l.step)
+	if cycles > 0 {
+		l.last = l.last.Add(l.step * time.Duration(cycles))
+		doa.Doa(cycles <= math.MaxUint64/l.addition)
+		doa.Doa(l.size <= math.MaxUint64-l.addition*cycles)
+		l.size = l.size + l.addition*cycles
+		l.size = min(l.size, l.capacity)
+	}
+	return l.size >= n
+}
+
 // Wait ensures there are enough resources (n) available, blocking if necessary.
 func (l *Limits) Wait(n uint64) {
 	l.mu.Lock()
