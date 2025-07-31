@@ -2,6 +2,7 @@ package balloc
 
 import (
 	"container/list"
+	"sync"
 
 	"github.com/mohanson/godump/doa"
 )
@@ -19,10 +20,11 @@ type Block struct {
 // Buddy manages the buddy memory allocation.
 type Buddy struct {
 	freeList []*list.List
-	maxTotal int
 	maxOrder int
+	maxTotal int
 	minBlock int
 	preAlloc []byte
+	syncLock *sync.Mutex
 }
 
 // Calloc allocates a block of the requested size and ensure it's initialized to zero.
@@ -36,6 +38,8 @@ func (b *Buddy) Calloc(size int) Block {
 
 // Balloc allocates a block of the requested size.
 func (b *Buddy) Malloc(size int) Block {
+	b.syncLock.Lock()
+	defer b.syncLock.Unlock()
 	doa.Doa(size > 0)
 	orderReal := log2(b.minBlock, max(clp2(size), b.minBlock))
 	orderTemp := orderReal
@@ -61,6 +65,8 @@ func (b *Buddy) Malloc(size int) Block {
 
 // Free deallocates a block and merges with its buddy if possible.
 func (b *Buddy) Free(block Block) {
+	b.syncLock.Lock()
+	defer b.syncLock.Unlock()
 	doa.Doa(block.Index >= 0)
 	doa.Doa(block.Index < b.maxTotal)
 	doa.Doa(block.Order >= 0)
@@ -87,6 +93,18 @@ func (b *Buddy) Free(block Block) {
 	b.freeList[order].PushFront(Block{Index: index, Order: order})
 }
 
+// Get the size of idle memory.
+func (b *Buddy) Idle() int {
+	b.syncLock.Lock()
+	defer b.syncLock.Unlock()
+	s := 0
+	for i, e := range b.freeList {
+		b := b.minBlock << i
+		s += e.Len() * b
+	}
+	return s
+}
+
 // New creates a new buddy allocator.
 func New(maxTotal int, minBlock int) *Buddy {
 	doa.Doa(isp2(maxTotal))
@@ -94,11 +112,12 @@ func New(maxTotal int, minBlock int) *Buddy {
 	doa.Doa(maxTotal > minBlock)
 	order := log2(minBlock, maxTotal)
 	buddy := &Buddy{
+		freeList: make([]*list.List, order+1),
+		maxOrder: order,
 		maxTotal: maxTotal,
 		minBlock: minBlock,
-		maxOrder: order,
-		freeList: make([]*list.List, order+1),
 		preAlloc: make([]byte, maxTotal),
+		syncLock: &sync.Mutex{},
 	}
 	for i := range buddy.freeList {
 		buddy.freeList[i] = list.New()
