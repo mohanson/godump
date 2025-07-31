@@ -1,0 +1,120 @@
+package balloc
+
+import (
+	"container/list"
+
+	"github.com/mohanson/godump/doa"
+)
+
+// Block represents an allocated or free memory block.
+type Block struct {
+	// Start index of the block.
+	Index int
+	// Order of the block (size = minBlock * 2^order).
+	Order int
+}
+
+// Buddy manages the buddy memory allocation.
+type Buddy struct {
+	maxTotal int
+	maxOrder int
+	minBlock int
+	freeList []*list.List
+}
+
+// Balloc allocates a block of the requested size.
+func (b *Buddy) Malloc(size int) Block {
+	doa.Doa(size > 0)
+	orderReal := log2(b.minBlock, max(clp2(size), b.minBlock))
+	orderTemp := orderReal
+	for orderTemp <= b.maxOrder && b.freeList[orderTemp].Len() == 0 {
+		orderTemp++
+	}
+	doa.Doa(orderTemp <= b.maxOrder)
+	blockElem := b.freeList[orderTemp].Front()
+	b.freeList[orderTemp].Remove(blockElem)
+	block := blockElem.Value.(Block)
+	for orderTemp > orderReal {
+		orderTemp--
+		blockSize := b.minBlock << orderTemp
+		b.freeList[orderTemp].PushFront(Block{
+			Index: block.Index + blockSize,
+			Order: orderTemp,
+		})
+		block.Order = orderTemp
+	}
+	return block
+}
+
+// Free deallocates a block and merges with its buddy if possible.
+func (b *Buddy) Free(block Block) {
+	doa.Doa(block.Index >= 0)
+	doa.Doa(block.Index < b.maxTotal)
+	doa.Doa(block.Order >= 0)
+	doa.Doa(block.Order < b.maxOrder)
+	index := block.Index
+	order := block.Order
+	for order < b.maxOrder {
+		blockSize := b.minBlock << order
+		buddy := index ^ blockSize
+		buddyElem := (*list.Element)(nil)
+		for e := b.freeList[order].Front(); e != nil; e = e.Next() {
+			if b := e.Value.(Block); b.Index == buddy {
+				buddyElem = e
+				break
+			}
+		}
+		if buddyElem == nil {
+			break
+		}
+		b.freeList[order].Remove(buddyElem)
+		index = min(index, buddy)
+		order++
+	}
+	b.freeList[order].PushFront(Block{Index: index, Order: order})
+}
+
+// New creates a new buddy allocator.
+func New(maxTotal int, minBlock int) *Buddy {
+	doa.Doa(isp2(maxTotal))
+	doa.Doa(isp2(minBlock))
+	doa.Doa(maxTotal > minBlock)
+	order := log2(minBlock, maxTotal)
+	buddy := &Buddy{
+		maxTotal: maxTotal,
+		minBlock: minBlock,
+		maxOrder: order,
+		freeList: make([]*list.List, order+1),
+	}
+	for i := range buddy.freeList {
+		buddy.freeList[i] = list.New()
+	}
+	buddy.freeList[order].PushFront(Block{Index: 0, Order: order})
+	return buddy
+}
+
+func clp2(n int) int {
+	n--
+	n |= n >> 1
+	n |= n >> 2
+	n |= n >> 4
+	n |= n >> 8
+	n |= n >> 16
+	n++
+	return n
+}
+
+func isp2(n int) bool {
+	return n > 0 && (n&(n-1)) == 0
+}
+
+func log2(m int, n int) int {
+	for i := range 64 {
+		doa.Doa(m <= n)
+		if m == n {
+			return i
+		}
+		m <<= 1
+	}
+	panic("unreachable")
+}
