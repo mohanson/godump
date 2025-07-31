@@ -12,14 +12,26 @@ type Block struct {
 	Index int
 	// Order of the block (size = minBlock * 2^order).
 	Order int
+	// Space.
+	Space []byte
 }
 
 // Buddy manages the buddy memory allocation.
 type Buddy struct {
+	freeList []*list.List
 	maxTotal int
 	maxOrder int
 	minBlock int
-	freeList []*list.List
+	preAlloc []byte
+}
+
+// Calloc allocates a block of the requested size and ensure it's initialized to zero.
+func (b *Buddy) Calloc(size int) Block {
+	block := b.Malloc(size)
+	for i := range block.Space {
+		block.Space[i] = 0
+	}
+	return block
 }
 
 // Balloc allocates a block of the requested size.
@@ -43,6 +55,7 @@ func (b *Buddy) Malloc(size int) Block {
 		})
 		block.Order = orderTemp
 	}
+	block.Space = b.preAlloc[block.Index : block.Index+size]
 	return block
 }
 
@@ -85,6 +98,7 @@ func New(maxTotal int, minBlock int) *Buddy {
 		minBlock: minBlock,
 		maxOrder: order,
 		freeList: make([]*list.List, order+1),
+		preAlloc: make([]byte, maxTotal),
 	}
 	for i := range buddy.freeList {
 		buddy.freeList[i] = list.New()
