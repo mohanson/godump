@@ -21,10 +21,7 @@ func mainServer() {
 	doa.Nil(rpc.Register(&Math{}))
 	rpc.HandleHTTP()
 	l := doa.Try(net.Listen("tcp", "127.0.0.1:8080"))
-	go func() {
-		defer l.Close()
-		http.Serve(l, nil)
-	}()
+	go http.Serve(l, nil)
 }
 
 func mainClient() {

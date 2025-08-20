@@ -21,9 +21,11 @@ func mainServer() {
 	doa.Nil(rpc.Register(&Math{}))
 	l := doa.Try(net.Listen("tcp", "127.0.0.1:8080"))
 	go func() {
-		defer l.Close()
 		for {
-			c := doa.Try(l.Accept())
+			c, err := l.Accept()
+			if err != nil {
+				continue
+			}
 			go rpc.ServeCodec(jsonrpc.NewServerCodec(c))
 		}
 	}()
