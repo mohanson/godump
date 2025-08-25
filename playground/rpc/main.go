@@ -4,7 +4,7 @@ import (
 	"net"
 	"net/rpc"
 
-	"github.com/mohanson/godump/doa"
+	"github.com/libraries/go/doa"
 )
 
 type Math struct{}

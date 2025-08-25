@@ -4,7 +4,7 @@ import (
 	"container/list"
 	"sync"
 
-	"github.com/mohanson/godump/doa"
+	"github.com/libraries/go/doa"
 )
 
 // Block represents an allocated or free memory block.

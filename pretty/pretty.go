@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/mohanson/godump/doa"
+	"github.com/libraries/go/doa"
 )
 
 // PrintProgress draw a progress bar in the terminal. The percent takes values ​​from 0 to 1.

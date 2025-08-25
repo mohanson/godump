@@ -4,7 +4,7 @@ package path
 import (
 	"path/filepath"
 
-	"github.com/mohanson/godump/doa"
+	"github.com/libraries/go/doa"
 )
 
 // Path provide path-handling operations.

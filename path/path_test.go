@@ -3,7 +3,7 @@ package path
 import (
 	"testing"
 
-	"github.com/mohanson/godump/doa"
+	"github.com/libraries/go/doa"
 )
 
 func TestPath(t *testing.T) {

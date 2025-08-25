@@ -8,7 +8,7 @@ import (
 	"path"
 	"sync"
 
-	"github.com/mohanson/godump/doa"
+	"github.com/libraries/go/doa"
 	"github.com/mohanson/godump/lru"
 )
 

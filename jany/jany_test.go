@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/mohanson/godump/doa"
+	"github.com/libraries/go/doa"
 )
 
 // See: https://datatracker.ietf.org/doc/html/rfc7159#section-13

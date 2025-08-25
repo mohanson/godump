@@ -4,7 +4,7 @@ package cron
 import (
 	"time"
 
-	"github.com/mohanson/godump/doa"
+	"github.com/libraries/go/doa"
 )
 
 // Cron schedules tasks at regular intervals.

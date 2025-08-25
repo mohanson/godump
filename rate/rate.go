@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/mohanson/godump/doa"
+	"github.com/libraries/go/doa"
 )
 
 // Limits represents a rate limiter that controls resource allocation over time.

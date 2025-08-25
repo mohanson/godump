@@ -3,7 +3,7 @@ package acdb
 import (
 	"testing"
 
-	"github.com/mohanson/godump/doa"
+	"github.com/libraries/go/doa"
 )
 
 func TestClient(t *testing.T) {

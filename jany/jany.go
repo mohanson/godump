@@ -7,7 +7,7 @@ import (
 	"io"
 	"strconv"
 
-	"github.com/mohanson/godump/doa"
+	"github.com/libraries/go/doa"
 )
 
 // Data returns a new Jany instance from the given byte slice.
