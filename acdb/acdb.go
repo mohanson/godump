@@ -9,7 +9,7 @@ import (
 	"sync"
 
 	"github.com/libraries/go/doa"
-	"github.com/mohanson/godump/lru"
+	"github.com/libraries/go/lru"
 )
 
 // Driver is the interface that wraps the Set/Get and Del method.

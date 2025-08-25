@@ -1,2 +1,4 @@
 github.com/libraries/go v0.0.0-20250825070055-94250d08da5a h1:EM9kebQwuHTwq4+e8yClzVREZfVp/u0b5qHBqtGek6Q=
 github.com/libraries/go v0.0.0-20250825070055-94250d08da5a/go.mod h1:z4pLmUKalHJ/Ib/56aWSfOi6pI0iVygus7pCq8OYqfs=
+github.com/libraries/go v0.0.0-20250825081511-5fc280252147 h1:/Fg0iQJKMJ1OVgw4POQPJOVgxXJ26r8gX3EvpDnqUZs=
+github.com/libraries/go v0.0.0-20250825081511-5fc280252147/go.mod h1:gDswTQfQ6h3VYCnUvrPEOPsRWYpDiNhO4ervTpYi41c=
